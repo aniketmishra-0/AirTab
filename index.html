@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy - AirTab Floating Mini Browser</title>
+  <style>
+    :root {
+      --bg: #0b0d13;
+      --card-bg: rgba(18, 22, 34, 0.88);
+      --text-main: #f5f7fc;
+      --text-secondary: #94a3b8;
+      --border: rgba(255, 255, 255, 0.1);
+      --accent: #007aff;
+      --accent-gradient: linear-gradient(135deg, #00d2ff, #007aff, #4f46e5);
+      --green-badge: rgba(52, 211, 153, 0.15);
+      --green-text: #34d399;
+      --green-border: rgba(52, 211, 153, 0.35);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: var(--bg);
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(0, 122, 255, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 85% 90%, rgba(79, 70, 229, 0.12) 0%, transparent 45%);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, sans-serif;
+      line-height: 1.65;
+      padding: 56px 20px;
+      display: flex;
+      justify-content: center;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrapper {
+      max-width: 860px;
+      width: 100%;
+      background: var(--card-bg);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 48px;
+      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+    .brand-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 28px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo-container {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 8px 24px rgba(0, 122, 255, 0.25);
+      flex-shrink: 0;
+    }
+    .logo-container svg {
+      width: 44px;
+      height: 44px;
+    }
+    .title-area h1 {
+      font-size: 28px;
+      font-weight: 750;
+      letter-spacing: -0.6px;
+      color: #ffffff;
+    }
+    .title-area .sub {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--green-badge);
+      color: var(--green-text);
+      border: 1px solid var(--green-border);
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12.5px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      letter-spacing: 0.2px;
+    }
+    h2 {
+      font-size: 19px;
+      font-weight: 650;
+      margin: 36px 0 14px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.3px;
+    }
+    h2::before {
+      content: "";
+      display: inline-block;
+      width: 4px;
+      height: 18px;
+      background: var(--accent-gradient);
+      border-radius: 2px;
+    }
+    p {
+      font-size: 15px;
+      color: #cbd5e1;
+      margin-bottom: 14px;
+    }
+    ul {
+      padding-left: 22px;
+      margin-bottom: 16px;
+    }
+    li {
+      font-size: 14.5px;
+      color: #cbd5e1;
+      margin-bottom: 8px;
+    }
+    li strong {
+      color: #ffffff;
+    }
+    .table-container {
+      overflow-x: auto;
+      margin: 20px 0 28px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      background: rgba(15, 18, 28, 0.6);
+    }
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: rgba(255, 255, 255, 0.04);
+      color: #ffffff;
+      font-weight: 650;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    code {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 3px 7px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      color: #38bdf8;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    .card-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin: 18px 0;
+    }
+    .footer {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer a {
+      color: #38bdf8;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer a:hover {
+      text-decoration: underline;
+    }
+    @media (max-width: 600px) {
+      .wrapper {
+        padding: 26px 20px;
+      }
+      .brand-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <header class="brand-header">
+      <div class="logo-container">
+        <svg viewBox="6 10 116 106">
+          <defs>
+            <linearGradient id="backGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#334155"/>
+              <stop offset="100%" stop-color="#0f172a"/>
+            </linearGradient>
+            <linearGradient id="frontGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#00d2ff"/>
+              <stop offset="50%" stop-color="#007aff"/>
+              <stop offset="100%" stop-color="#4f46e5"/>
+            </linearGradient>
+            <linearGradient id="accGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="100%" stop-color="#93c5fd"/>
+            </linearGradient>
+          </defs>
+          <g>
+            <rect x="18" y="38" width="74" height="66" rx="14" fill="url(#backGrad)" stroke="#64748b" stroke-width="2"/>
+            <circle cx="28" cy="48" r="2.5" fill="#64748b"/>
+            <circle cx="36" cy="48" r="2.5" fill="#475569"/>
+            <line x1="26" y1="64" x2="48" y2="64" stroke="#475569" stroke-width="2.5" stroke-linecap="round"/>
+            <rect x="44" y="22" width="68" height="72" rx="16" fill="url(#frontGrad)" stroke="#e0f2fe" stroke-width="2"/>
+            <path d="M 44 38 L 112 38" stroke="#93c5fd" stroke-width="1.5" stroke-opacity="0.4"/>
+            <circle cx="54" cy="30" r="2" fill="#ffffff" opacity="0.9"/>
+            <circle cx="61" cy="30" r="2" fill="#ffffff" opacity="0.6"/>
+            <path d="M 78 46 L 93 72 L 85 72 L 78 59 L 71 72 L 63 72 Z" fill="#ffffff"/>
+            <rect x="56" y="76" width="44" height="7" rx="3.5" fill="url(#accGrad)"/>
+          </g>
+        </svg>
+      </div>
+      <div class="title-area">
+        <h1>AirTab — Privacy Policy</h1>
+        <div class="sub">Official Policy for AirTab Floating Mini Browser • Effective Date: October 21, 2026</div>
+      </div>
+    </header>
+
+    <div class="pill-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+      100% Offline-First • Zero Remote Code • Zero Data Collection
+    </div>
+
+    <h2>1. Overview &amp; Privacy Pledge</h2>
+    <p>AirTab is built upon a fundamental principle: <strong>your browsing data belongs entirely to you</strong>. AirTab operates as an offline-first client extension designed to bring in-page preview capabilities without transmitting data across external servers.</p>
+    <ul>
+      <li><strong>Zero Telemetry:</strong> We do not track, log, analyze, or collect your search queries, URLs, browsing history, or personal data.</li>
+      <li><strong>Zero External Servers:</strong> AirTab has no analytics endpoints, no cloud databases, and no background tracking scripts.</li>
+      <li><strong>No Data Monetization:</strong> We never sell, monetize, rent, or transfer user information to third parties or advertising brokers.</li>
+      <li><strong>Client-Side Only:</strong> All preferences (such as hotkeys, dark/light theme, pinned state, and local search history) are stored purely on your local machine using Chrome's native storage sandbox.</li>
+    </ul>
+
+    <h2>2. Technical Permissions &amp; Strict Purpose</h2>
+    <p>AirTab requests only the minimal set of Chrome APIs necessary to deliver its core functionality. Here is a clear breakdown of each permission and its exact purpose:</p>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 32%;">Permission</th>
+            <th>Technical Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>declarativeNetRequest</code> &amp; <code>declarativeNetRequestWithHostAccess</code></td>
+            <td>Required to allow the in-page mini browser to display search results and user-requested link previews by stripping restrictive <code>X-Frame-Options</code> and <code>Content-Security-Policy</code> frame-ancestors response headers exclusively on isolated <code>sub_frame</code> requests.</td>
+          </tr>
+          <tr>
+            <td><code>&lt;all_urls&gt;</code> (Host Permissions)</td>
+            <td>Required because the user can search, enter any web URL, or preview links across any website of their choice inside the in-page floating mini browser.</td>
+          </tr>
+          <tr>
+            <td><code>activeTab</code> &amp; <code>scripting</code></td>
+            <td>Enables the floating card to calculate bounding coordinates and inject the isolated Shadow DOM popover immediately adjacent to the user's cursor or highlighted text upon user action.</td>
+          </tr>
+          <tr>
+            <td><code>contextMenus</code></td>
+            <td>Adds convenient <em>"Open Link in AirTab"</em> and <em>"Search in AirTab"</em> items to the right-click menu when users highlight text or right-click on links.</td>
+          </tr>
+          <tr>
+            <td><code>storage</code></td>
+            <td>Used exclusively on the client-side to save local user preferences (dark/light theme, custom hotkey, pinned window coordinates) via <code>chrome.storage.local</code>.</td>
+          </tr>
+          <tr>
+            <td><code>bookmarks</code></td>
+            <td>Allows users to quickly search and open their existing Chrome bookmarks from within the AirTab search panel on demand. Bookmarks are read locally and never transmitted.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>3. Remote Code Policy &amp; Security Architecture</h2>
+    <div class="card-box">
+      <p><strong>Zero Remote Code Guarantee:</strong> In strict compliance with Chrome Web Store Manifest V3 guidelines, AirTab contains <strong>no remote code</strong>. It does not use <code>eval()</code>, does not fetch external JavaScript or WebAssembly, and does not load third-party runtime bundles. All code is 100% packaged locally inside the verified extension archive.</p>
+    </div>
+
+    <h2>4. Third-Party Websites &amp; Embeds</h2>
+    <p>When you preview websites or search queries within AirTab:</p>
+    <ul>
+      <li>You are interacting directly with the target web server via standard secure HTTPS iframes.</li>
+      <li>The third-party website's own privacy policy applies to your interaction with their content.</li>
+      <li>AirTab does not modify page content, inject unauthorized ads, or intercept keystrokes or account credentials.</li>
+    </ul>
+
+    <h2>5. User Control &amp; Data Deletion</h2>
+    <p>Because all data is stored on your local device:</p>
+    <ul>
+      <li>You can clear your local search history or reset preferences at any time via the AirTab Settings panel.</li>
+      <li>Uninstalling AirTab immediately and permanently deletes all extension-related storage from your device.</li>
+    </ul>
+
+    <h2>6. Developer Contact &amp; Open Source</h2>
+    <p>If you have any questions or feedback regarding this Privacy Policy, please contact:</p>
+    <ul>
+      <li><strong>Developer:</strong> Aniket Mishra</li>
+      <li><strong>Source Code Repository:</strong> <a href="https://github.com/aniketmishra-0/AirTab" target="_blank" rel="noopener noreferrer">https://github.com/aniketmishra-0/AirTab</a></li>
+      <li><strong>Project:</strong> AirTab - Floating Mini Browser for Chrome</li>
+    </ul>
+
+    <footer class="footer">
+      <div>&copy; 2026 AirTab. All rights reserved.</div>
+      <div><a href="https://github.com/aniketmishra-0/AirTab" target="_blank" rel="noopener noreferrer">GitHub Repository</a></div>
+    </footer>
+  </div>
+</body>
+</html>

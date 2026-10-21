@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AirTab Settings</title>
+  <style>
+    :root {
+      --bg: #1e1e20;
+      --card-bg: rgba(36, 36, 40, 0.85);
+      --border: rgba(255, 255, 255, 0.12);
+      --text: #f5f5f7;
+      --text-muted: rgba(255, 255, 255, 0.65);
+      --accent: #0a84ff;
+      --accent-hover: #0071e3;
+      --surface: rgba(255, 255, 255, 0.06);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 24px;
+      width: 460px;
+      margin: 0 auto;
+      -webkit-font-smoothing: antialiased;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .header h1 {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: 11.5px;
+      font-weight: 650;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+    .row:last-child { margin-bottom: 0; }
+    input[type="text"], select {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 6px 10px;
+      color: var(--text);
+      font-size: 12.5px;
+      outline: none;
+    }
+    input[type="text"]:focus, select:focus {
+      border-color: var(--accent);
+    }
+    .engine-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+    .engine-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12.5px;
+    }
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 550;
+      cursor: pointer;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn-secondary {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.12); }
+    .status-toast {
+      font-size: 12px;
+      color: #30d158;
+      text-align: center;
+      margin-top: 10px;
+      min-height: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span style="font-size: 20px;">⚡</span>
+    <h1>AirTab Settings</h1>
+  </div>
+
+  <!-- Appearance -->
+  <div class="section">
+    <div class="section-title">Appearance</div>
+    <div class="row">
+      <span>Theme:</span>
+      <select id="theme">
+        <option value="dark">Dark Frosted Glass</option>
+        <option value="light">Light Frosted Glass</option>
+        <option value="auto">Auto (Match System)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Link Peek (Arc Style) -->
+  <div class="section">
+    <div class="section-title">⚡ Instant Hover Peek & Look Up</div>
+    <div class="row">
+      <span>Enable Instant Peek:</span>
+      <input type="checkbox" id="linkPeekEnabled" />
+    </div>
+    <div class="row" style="margin-top: 10px;">
+      <span>Instant Peek Hotkey:</span>
+      <select id="peekHotkey">
+        <option value="Alt">⌥ Option / Alt (Recommended)</option>
+        <option value="Shift">⇧ Shift</option>
+        <option value="Control">⌃ Control / Command</option>
+        <option value="Space">␣ Spacebar</option>
+      </select>
+    </div>
+  </div>
+
+  <div style="display: flex; justify-content: flex-end; gap: 8px;">
+    <button class="btn" id="saveBtn">Save Settings</button>
+  </div>
+  <div class="status-toast" id="statusToast"></div>
+
+  <script src="options.js"></script>
+</body>
+</html>
