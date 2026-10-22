@@ -246,15 +246,21 @@
         }
       }, true);
 
-      // Ultra-Fast YouTube Zero-Ad Skipper (50ms + MutationObserver)
+      // Ultra-Fast YouTube Zero-Ad Skipper (MutationObserver + Interval fallback)
+      let _adSkipPending = false;
       const skipAdNow = () => {
+        _adSkipPending = false;
         const skipSelectors = [
           ".ytp-ad-skip-button",
           ".ytp-ad-skip-button-modern",
           ".ytp-skip-ad-button",
           ".ytp-ad-skip-button-container",
           ".ytp-ad-overlay-close-button",
-          "[id^='skip-button']"
+          "[id^='skip-button']",
+          "button.ytp-ad-skip-button-modern",
+          ".ytp-ad-skip-button-slot",
+          "#skip-button\\:8",
+          "button[class*='skip']"
         ];
         for (const sel of skipSelectors) {
           const btn = document.querySelector(sel);
@@ -268,22 +274,44 @@
         if (adShowing && video) {
           video.muted = true;
           if (!isNaN(video.duration) && video.duration > 0) {
-            video.currentTime = video.duration;
+            video.currentTime = video.duration - 0.1;
           }
           video.playbackRate = 16.0;
+          // Try to click skip button after fast-forwarding
+          setTimeout(() => {
+            for (const sel of skipSelectors) {
+              const b = document.querySelector(sel);
+              if (b) { try { b.click(); } catch (_) {} }
+            }
+          }, 100);
         }
 
-        const overlays = document.querySelectorAll(".ytp-ad-overlay-close-button, .ytp-ad-image-overlay, .ytp-cards-teaser");
+        // Remove overlay ads and companion banners
+        const overlays = document.querySelectorAll(
+          ".ytp-ad-overlay-close-button, .ytp-ad-image-overlay, .ytp-cards-teaser, " +
+          "ytd-promoted-sparkles-web-renderer, ytd-ad-slot-renderer, " +
+          "ytd-in-feed-ad-layout-renderer, ytd-banner-promo-renderer, " +
+          "ytd-statement-banner-renderer, #masthead-ad, " +
+          "ytd-engagement-panel-section-list-renderer[target-id='engagement-panel-ads']"
+        );
         overlays.forEach(el => {
           try { el.remove(); } catch (_) {}
         });
       };
 
-      setInterval(skipAdNow, 50);
+      setInterval(skipAdNow, 500);
 
       try {
-        const obs = new MutationObserver(skipAdNow);
-        obs.observe(document.body || document.documentElement, {
+        const adObserver = new MutationObserver(() => {
+          // Debounce: Only schedule one ad-skip pass per animation frame
+          if (!_adSkipPending) {
+            _adSkipPending = true;
+            requestAnimationFrame(skipAdNow);
+          }
+        });
+        // Watch only the player container for ad class changes, not the entire body
+        const playerTarget = document.querySelector("#movie_player") || document.querySelector("ytd-player") || document.body;
+        adObserver.observe(playerTarget, {
           childList: true,
           subtree: true,
           attributes: true,
@@ -2035,11 +2063,20 @@
         airtabPinnedState: state,
         airtabPinnedUrl: (state.tabs && state.tabs[state.activeTabIndex]) ? state.tabs[state.activeTabIndex].url : ""
       });
-    }, 120);
+    }, 500);
   }
 
   function applyPinnedState(state) {
     if (!state || !state.tabs || state.tabs.length === 0) return;
+
+    // If AirTab is already open with the same tabs, skip reconstruction entirely.
+    // This prevents iframe refresh when switching Chrome tabs in global/pinned mode.
+    if (isOpen && isPinned && pinMode === "chrome") {
+      // Already showing the pinned AirTab — just ensure visibility, no iframe destruction.
+      popover.classList.add("visible");
+      hidePill();
+      return;
+    }
 
     setPinMode("chrome");
 
@@ -2057,9 +2094,18 @@
       arrow.classList.remove("visible");
     }
 
-    // Sync tabs
+    // Sync tabs — check if we already have the exact same set of tabs loaded
     const sameTabs = tabs.length === state.tabs.length &&
-      tabs.every((t, i) => t.url === state.tabs[i].url);
+      tabs.every((t, i) => {
+        // Compare base URLs only (ignore fragment/query changes from SPA navigation)
+        try {
+          const a = new URL(t.url).origin + new URL(t.url).pathname;
+          const b = new URL(state.tabs[i].url).origin + new URL(state.tabs[i].url).pathname;
+          return a === b;
+        } catch (_) {
+          return t.url === state.tabs[i].url;
+        }
+      });
 
     if (!sameTabs) {
       [...tabs].forEach((t) => {
@@ -2078,6 +2124,7 @@
         switchTab(tabs[targetIdx].id);
       }
     } else {
+      // Tabs are same — just switch active tab if needed, DO NOT reload iframes
       const targetIdx = (state.activeTabIndex >= 0 && state.activeTabIndex < tabs.length) ? state.activeTabIndex : 0;
       if (tabs[targetIdx] && tabs[targetIdx].id !== activeTabId) {
         switchTab(tabs[targetIdx].id);

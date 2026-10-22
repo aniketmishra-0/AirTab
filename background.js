@@ -172,24 +172,29 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 });
 
 // Global Roaming Pinned AirTab: ONLY roam if user explicitly activated "Pin for Chrome"
+// Uses a debounce to prevent rapid-fire re-syncs when switching tabs quickly
+let _syncDebounce = null;
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
-  try {
-    const data = await chrome.storage.local.get(["airtabPinned", "airtabPinnedMode", "airtabPinnedState"]);
-    if (data.airtabPinned !== true || data.airtabPinnedMode !== "chrome" || !data.airtabPinnedState) {
-      return;
+  clearTimeout(_syncDebounce);
+  _syncDebounce = setTimeout(async () => {
+    try {
+      const data = await chrome.storage.local.get(["airtabPinned", "airtabPinnedMode", "airtabPinnedState"]);
+      if (data.airtabPinned !== true || data.airtabPinnedMode !== "chrome" || !data.airtabPinnedState) {
+        return;
+      }
+
+      const tab = await chrome.tabs.get(activeInfo.tabId).catch(() => null);
+      if (!tab || !tab.id) return;
+
+      sendOrInject(tab, {
+        action: "AIRTAB_SYNC_PINNED",
+        state: data.airtabPinnedState,
+        trigger: "tabActivated"
+      });
+    } catch (err) {
+      console.warn("AirTab: onActivated sync error:", err);
     }
-
-    const tab = await chrome.tabs.get(activeInfo.tabId).catch(() => null);
-    if (!tab || !tab.id) return;
-
-    sendOrInject(tab, {
-      action: "AIRTAB_SYNC_PINNED",
-      state: data.airtabPinnedState,
-      trigger: "tabActivated"
-    });
-  } catch (err) {
-    console.warn("AirTab: onActivated sync error:", err);
-  }
+  }, 150);
 });
 
 chrome.windows.onFocusChanged.addListener(async (windowId) => {
