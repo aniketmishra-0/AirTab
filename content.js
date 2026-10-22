@@ -26,6 +26,24 @@
     window.addEventListener("popstate", checkSubframeNav);
     window.addEventListener("yt-navigate-finish", checkSubframeNav);
 
+    // Sync YouTube video playback time so switching tabs resumes seamlessly
+    if (window.location.hostname.includes("youtube.com")) {
+      setInterval(() => {
+        const v = document.querySelector("video");
+        if (v && !v.paused && v.currentTime > 3) {
+          try {
+            const u = new URL(window.location.href);
+            u.searchParams.set("t", `${Math.floor(v.currentTime)}s`);
+            window.top.postMessage({
+              type: "AIRTAB_FRAME_NAV",
+              url: u.href,
+              title: document.title
+            }, "*");
+          } catch (_) {}
+        }
+      }, 2500);
+    }
+
     // 3. AirShield: Rust-Grade Offline Cosmetic AdBlocker
     try {
       const adStyle = document.createElement("style");
@@ -246,76 +264,72 @@
         }
       }, true);
 
-      // Ultra-Fast YouTube Zero-Ad Skipper (MutationObserver + Interval fallback)
-      let _adSkipPending = false;
+      // Rock-Solid YouTube Zero-Ad Interceptor & Auto-Skipper
       const skipAdNow = () => {
-        _adSkipPending = false;
-        const skipSelectors = [
-          ".ytp-ad-skip-button",
-          ".ytp-ad-skip-button-modern",
-          ".ytp-skip-ad-button",
-          ".ytp-ad-skip-button-container",
-          ".ytp-ad-overlay-close-button",
-          "[id^='skip-button']",
-          "button.ytp-ad-skip-button-modern",
-          ".ytp-ad-skip-button-slot",
-          "#skip-button\\:8",
-          "button[class*='skip']"
-        ];
-        for (const sel of skipSelectors) {
-          const btn = document.querySelector(sel);
-          if (btn) {
-            try { btn.click(); } catch (_) {}
+        try {
+          // 1. Click all modern and legacy skip buttons instantly
+          const skipSelectors = [
+            ".ytp-ad-skip-button",
+            ".ytp-ad-skip-button-modern",
+            ".ytp-skip-ad-button",
+            ".ytp-ad-skip-button-container",
+            ".ytp-ad-overlay-close-button",
+            "[id^='skip-button']",
+            "button.ytp-ad-skip-button-modern",
+            ".ytp-ad-skip-button-slot",
+            "#skip-button\\:8",
+            "button[class*='skip']",
+            ".ytp-ad-preview-container"
+          ];
+          for (const sel of skipSelectors) {
+            const btns = document.querySelectorAll(sel);
+            btns.forEach(b => { try { b.click(); } catch (_) {} });
           }
-        }
 
-        const adShowing = document.querySelector(".ad-showing, .ad-interrupting, .ytp-ad-player-overlay");
-        const video = document.querySelector("video");
-        if (adShowing && video) {
-          video.muted = true;
-          if (!isNaN(video.duration) && video.duration > 0) {
-            video.currentTime = video.duration - 0.1;
-          }
-          video.playbackRate = 16.0;
-          // Try to click skip button after fast-forwarding
-          setTimeout(() => {
+          // 2. Fast-forward video ad if currently playing
+          const player = document.querySelector("#movie_player") || document.querySelector(".html5-video-player");
+          const isAdActive = document.querySelector(".ad-showing, .ad-interrupting, .ytp-ad-player-overlay") ||
+                             (player && (player.classList.contains("ad-showing") || player.classList.contains("ad-interrupting")));
+          const video = document.querySelector("video");
+
+          if (isAdActive && video) {
+            video.muted = true;
+            if (!isNaN(video.duration) && video.duration > 0 && isFinite(video.duration)) {
+              video.currentTime = video.duration;
+            }
+            video.playbackRate = 16.0;
+            // Immediate click follow-up
             for (const sel of skipSelectors) {
               const b = document.querySelector(sel);
               if (b) { try { b.click(); } catch (_) {} }
             }
-          }, 100);
-        }
+          }
 
-        // Remove overlay ads and companion banners
-        const overlays = document.querySelectorAll(
-          ".ytp-ad-overlay-close-button, .ytp-ad-image-overlay, .ytp-cards-teaser, " +
-          "ytd-promoted-sparkles-web-renderer, ytd-ad-slot-renderer, " +
-          "ytd-in-feed-ad-layout-renderer, ytd-banner-promo-renderer, " +
-          "ytd-statement-banner-renderer, #masthead-ad, " +
-          "ytd-engagement-panel-section-list-renderer[target-id='engagement-panel-ads']"
-        );
-        overlays.forEach(el => {
-          try { el.remove(); } catch (_) {}
-        });
+          // 3. Remove overlay ads, banners, and companion promotions
+          const overlays = document.querySelectorAll(
+            ".ytp-ad-overlay-close-button, .ytp-ad-image-overlay, .ytp-cards-teaser, " +
+            "ytd-promoted-sparkles-web-renderer, ytd-ad-slot-renderer, " +
+            "ytd-in-feed-ad-layout-renderer, ytd-banner-promo-renderer, " +
+            "ytd-statement-banner-renderer, #masthead-ad, " +
+            "ytd-engagement-panel-section-list-renderer[target-id='engagement-panel-ads'], " +
+            ".ytp-ad-overlay-container, .ytp-ad-message-container"
+          );
+          overlays.forEach(el => {
+            try { el.remove(); } catch (_) {}
+          });
+        } catch (_) {}
       };
 
-      setInterval(skipAdNow, 500);
+      // High-frequency polling (runs every 100ms reliably without relying on requestAnimationFrame)
+      setInterval(skipAdNow, 100);
 
+      // MutationObserver directly on DOM for instantaneous response
       try {
-        const adObserver = new MutationObserver(() => {
-          // Debounce: Only schedule one ad-skip pass per animation frame
-          if (!_adSkipPending) {
-            _adSkipPending = true;
-            requestAnimationFrame(skipAdNow);
-          }
-        });
-        // Watch only the player container for ad class changes, not the entire body
-        const playerTarget = document.querySelector("#movie_player") || document.querySelector("ytd-player") || document.body;
-        adObserver.observe(playerTarget, {
+        const adObserver = new MutationObserver(skipAdNow);
+        const target = document.body || document.documentElement;
+        adObserver.observe(target, {
           childList: true,
-          subtree: true,
-          attributes: true,
-          attributeFilter: ["class"]
+          subtree: true
         });
       } catch (_) {}
     }
@@ -722,7 +736,7 @@
         <button class="quickpeek-bookmark-btn" title="Bookmark this page">★</button>
       </div>
 
-      <button class="quickpeek-popout-btn" title="Open in Chrome Tab">
+      <button class="quickpeek-popout-btn" title="Detach into Floating Window (Zero reload on tab switch, uninterrupted video)">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
           <polyline points="15 3 21 3 21 9"></polyline>
