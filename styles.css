@@ -441,6 +441,38 @@
 }
 
 /* ==========================================================================
+   Document Picture-in-Picture (Always on Front) Viewport Mode
+   ========================================================================== */
+.quickpeek-popover.in-pip-window {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+  margin: 0 !important;
+  z-index: 1 !important;
+}
+
+.quickpeek-popover.in-pip-window .quickpeek-arrow,
+.quickpeek-popover.in-pip-window .quickpeek-dock-resize-handle {
+  display: none !important;
+}
+
+.quickpeek-popover.in-pip-window .quickpeek-viewport {
+  flex: 1 !important;
+  height: calc(100vh - 84px) !important;
+  border-radius: 0 !important;
+}
+
+/* ==========================================================================
    PiP Mode (Picture-in-Picture Floating Mini Video Player)
    ========================================================================== */
 .quickpeek-popover.pip-mode {

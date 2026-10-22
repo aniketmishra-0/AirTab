@@ -571,17 +571,17 @@
             <button class="quickpeek-pin-option pin-tab-opt">
               <span class="pin-opt-icon">📌</span>
               <div class="pin-opt-text">
-                <span class="pin-opt-title">Pin to Current Tab</span>
-                <span class="pin-opt-desc">Sticky on this webpage only</span>
+                <span class="pin-opt-title">Pin to This Tab</span>
+                <span class="pin-opt-desc">Always on front of this page</span>
               </div>
               <span class="pin-opt-check tab-check">✓</span>
             </button>
 
             <button class="quickpeek-pin-option pin-chrome-opt">
-              <span class="pin-opt-icon">🌐</span>
+              <span class="pin-opt-icon">📺</span>
               <div class="pin-opt-text">
-                <span class="pin-opt-title">Float Across All Tabs</span>
-                <span class="pin-opt-desc">Zero reload on tab switch (Never stops)</span>
+                <span class="pin-opt-title">Always on Front (PiP)</span>
+                <span class="pin-opt-desc">Floats above all tabs & apps (Zero reload)</span>
               </div>
               <span class="pin-opt-check chrome-check">↗</span>
             </button>
@@ -2959,6 +2959,82 @@
     hidePinMenu(0);
   });
 
+  let activePipWindow = null;
+
+  async function openAlwaysOnFrontPiP() {
+    if ("documentPictureInPicture" in window) {
+      try {
+        if (activePipWindow) {
+          activePipWindow.close();
+          activePipWindow = null;
+          return true;
+        }
+
+        const width = Math.max(540, popover.offsetWidth || 540);
+        const height = Math.max(640, popover.offsetHeight || 640);
+        const pipWin = await window.documentPictureInPicture.requestWindow({
+          width: width,
+          height: height
+        });
+        activePipWindow = pipWin;
+
+        const style = document.createElement("style");
+        style.textContent = `
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #0d0e12;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+          }
+          .quickpeek-popover {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
+            border-radius: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            display: flex !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+          }
+          .quickpeek-arrow { display: none !important; }
+        `;
+        pipWin.document.head.appendChild(style);
+
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = chrome.runtime.getURL("styles.css");
+        pipWin.document.head.appendChild(link);
+
+        pipWin.document.body.appendChild(popover);
+        popover.classList.add("visible", "in-pip-window");
+        showStatusMessage("📺 Always on Front: Floating on top of all tabs & apps!");
+
+        pipWin.addEventListener("pagehide", () => {
+          popover.classList.remove("in-pip-window");
+          shadow.appendChild(popover);
+          activePipWindow = null;
+          if (isOpen) {
+            popover.classList.add("visible");
+          }
+        });
+        return true;
+      } catch (err) {
+        console.warn("PiP error:", err);
+      }
+    }
+    return false;
+  }
+
   if (pinTabOpt) {
     pinTabOpt.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -2968,23 +3044,17 @@
   }
 
   if (pinChromeOpt) {
-    pinChromeOpt.addEventListener("click", (e) => {
+    pinChromeOpt.addEventListener("click", async (e) => {
       e.stopPropagation();
       hidePinMenu(0);
-      const tab = getActiveTab();
-      const targetUrl = (tab && tab.url) ? tab.url : "https://www.google.com/";
-      // Detach into the zero-reload floating mini window (floats above all tabs smoothly)
-      chrome.runtime.sendMessage({
-        action: "OPEN_FLOATING_WINDOW",
-        url: targetUrl,
-        width: Math.max(540, popover.offsetWidth || 540),
-        height: Math.max(640, popover.offsetHeight || 640),
-        left: Math.max(50, window.screenX + popover.offsetLeft),
-        top: Math.max(50, window.screenY + popover.offsetTop)
-      });
-      showStatusMessage("🚀 Floating Mini-Browser Launched (Zero reload across all tabs!)", 3000);
-      setPinMode("none");
-      closePopover(true);
+
+      // Launch Always on Front (PiP) keeping the exact same AirTab popover & all tabs intact
+      const ok = await openAlwaysOnFrontPiP();
+      if (!ok) {
+        // Fallback: Pin to Tab
+        setPinMode("tab");
+        showStatusMessage("📌 Pinned Always on Front on this page");
+      }
     });
   }
 

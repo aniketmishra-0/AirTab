@@ -161,12 +161,11 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     });
   } else if (info.menuItemId === "airtab-open-floating") {
     const targetUrl = info.linkUrl || "https://www.google.com/";
-    const appUrl = chrome.runtime.getURL("window.html") + "?url=" + encodeURIComponent(targetUrl);
     chrome.windows.create({
-      url: appUrl,
+      url: targetUrl,
       type: "popup",
-      width: 600,
-      height: 720,
+      width: 560,
+      height: 680,
       focused: true
     });
   }
@@ -233,14 +232,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
   }
 
-  // Open detached floating window with FULL AirTab UI (Multi-Tabs, Omnibox, Always on Front)
+  // Open detached floating window (Floats above Chrome tab bar with active session)
   if (message.action === "OPEN_FLOATING_WINDOW" && message.url) {
-    const appUrl = chrome.runtime.getURL("window.html") + "?url=" + encodeURIComponent(message.url);
     const winOpts = {
-      url: appUrl,
+      url: message.url,
       type: "popup",
-      width: message.width || 600,
-      height: message.height || 720,
+      width: message.width || 560,
+      height: message.height || 680,
       focused: true
     };
     if (typeof message.left === "number" && !isNaN(message.left)) winOpts.left = Math.round(message.left);
