@@ -171,53 +171,6 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   }
 });
 
-// Global Roaming Pinned AirTab: ONLY roam if user explicitly activated "Pin for Chrome"
-// Uses a debounce to prevent rapid-fire re-syncs when switching tabs quickly
-let _syncDebounce = null;
-chrome.tabs.onActivated.addListener(async (activeInfo) => {
-  clearTimeout(_syncDebounce);
-  _syncDebounce = setTimeout(async () => {
-    try {
-      const data = await chrome.storage.local.get(["airtabPinned", "airtabPinnedMode", "airtabPinnedState"]);
-      if (data.airtabPinned !== true || data.airtabPinnedMode !== "chrome" || !data.airtabPinnedState) {
-        return;
-      }
-
-      const tab = await chrome.tabs.get(activeInfo.tabId).catch(() => null);
-      if (!tab || !tab.id) return;
-
-      sendOrInject(tab, {
-        action: "AIRTAB_SYNC_PINNED",
-        state: data.airtabPinnedState,
-        trigger: "tabActivated"
-      });
-    } catch (err) {
-      console.warn("AirTab: onActivated sync error:", err);
-    }
-  }, 150);
-});
-
-chrome.windows.onFocusChanged.addListener(async (windowId) => {
-  if (windowId === chrome.windows.WINDOW_ID_NONE) return;
-  try {
-    const data = await chrome.storage.local.get(["airtabPinned", "airtabPinnedMode", "airtabPinnedState"]);
-    if (data.airtabPinned !== true || data.airtabPinnedMode !== "chrome" || !data.airtabPinnedState) {
-      return;
-    }
-
-    const [tab] = await chrome.tabs.query({ active: true, windowId }).catch(() => []);
-    if (!tab || !tab.id) return;
-
-    sendOrInject(tab, {
-      action: "AIRTAB_SYNC_PINNED",
-      state: data.airtabPinnedState,
-      trigger: "windowFocusChanged"
-    });
-  } catch (err) {
-    console.warn("AirTab: onFocusChanged sync error:", err);
-  }
-});
-
 // Purge roaming state when unpinned
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "AIRTAB_UNPIN_ALL") {
@@ -281,13 +234,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   // Open detached floating window (Floats above Chrome tab bar & desktop with 100% active Chrome login)
   if (message.action === "OPEN_FLOATING_WINDOW" && message.url) {
-    chrome.windows.create({
+    const winOpts = {
       url: message.url,
       type: "popup",
       width: message.width || 560,
       height: message.height || 680,
       focused: true
-    });
+    };
+    if (typeof message.left === "number" && !isNaN(message.left)) winOpts.left = Math.round(message.left);
+    if (typeof message.top === "number" && !isNaN(message.top)) winOpts.top = Math.round(message.top);
+    chrome.windows.create(winOpts);
     sendResponse({ success: true });
     return true;
   }

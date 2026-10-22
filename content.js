@@ -580,10 +580,10 @@
             <button class="quickpeek-pin-option pin-chrome-opt">
               <span class="pin-opt-icon">🌐</span>
               <div class="pin-opt-text">
-                <span class="pin-opt-title">Pin Globally in Chrome</span>
-                <span class="pin-opt-desc">Roams across all browser tabs</span>
+                <span class="pin-opt-title">Float Across All Tabs</span>
+                <span class="pin-opt-desc">Zero reload on tab switch (Never stops)</span>
               </div>
-              <span class="pin-opt-check chrome-check">✓</span>
+              <span class="pin-opt-check chrome-check">↗</span>
             </button>
 
             <div class="quickpeek-pin-divider"></div>
@@ -1064,14 +1064,10 @@
       setDockedMode(true);
     }
 
-    // Strict Guard: Only restore pinned window if airtabPinned is strictly boolean true in chrome mode
-    if (res.airtabPinned === true && res.airtabPinnedMode === "chrome" && res.airtabPinnedState && res.airtabPinnedState.isOpen) {
-      applyPinnedState(res.airtabPinnedState);
-    } else {
-      isPinned = false;
-      pinMode = "none";
-      chrome.storage.local.remove(["airtabPinned", "airtabPinnedMode", "airtabPinnedState", "airtabPinnedUrl"]);
-    }
+    // Clean up any legacy roaming keys on page initialization
+    isPinned = false;
+    pinMode = "none";
+    chrome.storage.local.remove(["airtabPinned", "airtabPinnedMode", "airtabPinnedState", "airtabPinnedUrl"]);
   });
 
   // ==========================================================================
@@ -2907,32 +2903,23 @@
 
   function setPinMode(mode) {
     pinMode = mode;
-    isPinned = (mode === "tab" || mode === "chrome");
+    isPinned = (mode === "tab");
 
-    // Cancel any queued savePinnedDebounce immediately
     clearTimeout(savePinnedDebounce);
     savePinnedDebounce = null;
 
     pinBtn.classList.remove("pinned", "pinned-tab", "pinned-chrome");
 
     if (pinTabOpt) pinTabOpt.classList.toggle("active", mode === "tab");
-    if (pinChromeOpt) pinChromeOpt.classList.toggle("active", mode === "chrome");
     if (unpinOpt) unpinOpt.classList.toggle("active", mode === "none");
 
     if (mode === "tab") {
       isTemporaryPeek = false;
       pinBtn.classList.add("pinned", "pinned-tab");
-      // Explicitly wipe chrome-wide roaming storage completely so other tabs never open
       chrome.storage.local.remove(["airtabPinned", "airtabPinnedMode", "airtabPinnedState", "airtabPinnedUrl"]);
       chrome.runtime.sendMessage({ action: "AIRTAB_UNPIN_ALL" }).catch(() => {});
-      showStatusMessage("📌 Pinned to this Tab: Stays sticky on this page only");
-    } else if (mode === "chrome") {
-      isTemporaryPeek = false;
-      pinBtn.classList.add("pinned", "pinned-chrome");
-      savePinnedState();
-      showStatusMessage("🌐 Pinned Globally: Roams across all Chrome tabs");
+      showStatusMessage("📌 Pinned to this Tab: Stays sticky on this page");
     } else {
-      // Unpinned: completely remove pinned keys from storage
       chrome.storage.local.remove(["airtabPinned", "airtabPinnedMode", "airtabPinnedState", "airtabPinnedUrl"]);
       chrome.runtime.sendMessage({ action: "AIRTAB_UNPIN_ALL" }).catch(() => {});
       showStatusMessage("📍 AirTab Unpinned: Normal floating card");
@@ -2945,7 +2932,6 @@
     clearTimeout(pinHoverTimer);
     if (!pinMenu) return;
     if (pinTabOpt) pinTabOpt.classList.toggle("active", pinMode === "tab");
-    if (pinChromeOpt) pinChromeOpt.classList.toggle("active", pinMode === "chrome");
     if (unpinOpt) unpinOpt.classList.toggle("active", pinMode === "none");
     pinMenu.style.display = "flex";
   }
@@ -2964,8 +2950,8 @@
 
   pinBtn.addEventListener("click", (e) => {
     e.stopPropagation();
-    // 1-Click Fast Action: Toggle between "tab" (this page only) and "none"
-    if (pinMode === "tab" || pinMode === "chrome") {
+    // 1-Click Fast Action: Toggle "Pin to Current Tab" (Sticky on this page, zero reload on other tabs)
+    if (pinMode === "tab") {
       setPinMode("none");
     } else {
       setPinMode("tab");
@@ -2984,8 +2970,21 @@
   if (pinChromeOpt) {
     pinChromeOpt.addEventListener("click", (e) => {
       e.stopPropagation();
-      setPinMode(pinMode === "chrome" ? "none" : "chrome");
       hidePinMenu(0);
+      const tab = getActiveTab();
+      const targetUrl = (tab && tab.url) ? tab.url : "https://www.google.com/";
+      // Detach into the zero-reload floating mini window (floats above all tabs smoothly)
+      chrome.runtime.sendMessage({
+        action: "OPEN_FLOATING_WINDOW",
+        url: targetUrl,
+        width: Math.max(540, popover.offsetWidth || 540),
+        height: Math.max(640, popover.offsetHeight || 640),
+        left: Math.max(50, window.screenX + popover.offsetLeft),
+        top: Math.max(50, window.screenY + popover.offsetTop)
+      });
+      showStatusMessage("🚀 Floating Mini-Browser Launched (Zero reload across all tabs!)", 3000);
+      setPinMode("none");
+      closePopover(true);
     });
   }
 
