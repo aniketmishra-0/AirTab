@@ -411,6 +411,15 @@
 }
 
 /* ==========================================================================
+   Pinned / Always on Front Mode (Fixed on top of webpage, immune to scroll/outside clicks)
+   ========================================================================== */
+.quickpeek-popover.pinned {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(0, 240, 255, 0.40) !important;
+}
+
+/* ==========================================================================
    Widescreen Floating Theater Mode (Expands floating card without taking over monitor)
    ========================================================================== */
 .quickpeek-popover.theater-mode {
@@ -440,37 +449,6 @@
   display: none !important;
 }
 
-/* ==========================================================================
-   Document Picture-in-Picture (Always on Front) Viewport Mode
-   ========================================================================== */
-.quickpeek-popover.in-pip-window {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
-  border-radius: 0 !important;
-  border: none !important;
-  box-shadow: none !important;
-  transform: none !important;
-  margin: 0 !important;
-  z-index: 1 !important;
-}
-
-.quickpeek-popover.in-pip-window .quickpeek-arrow,
-.quickpeek-popover.in-pip-window .quickpeek-dock-resize-handle {
-  display: none !important;
-}
-
-.quickpeek-popover.in-pip-window .quickpeek-viewport {
-  flex: 1 !important;
-  height: calc(100vh - 84px) !important;
-  border-radius: 0 !important;
-}
 
 /* ==========================================================================
    PiP Mode (Picture-in-Picture Floating Mini Video Player)

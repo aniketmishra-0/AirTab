@@ -2916,10 +2916,13 @@
     if (mode === "tab") {
       isTemporaryPeek = false;
       pinBtn.classList.add("pinned", "pinned-tab");
+      popover.classList.add("pinned");
+      arrow.classList.remove("visible");
       chrome.storage.local.remove(["airtabPinned", "airtabPinnedMode", "airtabPinnedState", "airtabPinnedUrl"]);
       chrome.runtime.sendMessage({ action: "AIRTAB_UNPIN_ALL" }).catch(() => {});
-      showStatusMessage("📌 Pinned to this Tab: Stays sticky on this page");
+      showStatusMessage("📌 Always on Front: Pinned on this page");
     } else {
+      popover.classList.remove("pinned");
       chrome.storage.local.remove(["airtabPinned", "airtabPinnedMode", "airtabPinnedState", "airtabPinnedUrl"]);
       chrome.runtime.sendMessage({ action: "AIRTAB_UNPIN_ALL" }).catch(() => {});
       showStatusMessage("📍 AirTab Unpinned: Normal floating card");
@@ -2950,111 +2953,24 @@
 
   pinBtn.addEventListener("click", (e) => {
     e.stopPropagation();
-    // 1-Click Fast Action: Toggle "Pin to Current Tab" (Sticky on this page, zero reload on other tabs)
-    if (pinMode === "tab") {
-      setPinMode("none");
-    } else {
-      setPinMode("tab");
-    }
+    // 1-Click Fast Action: Toggle Pin Always on Front
+    setPinMode(isPinned ? "none" : "tab");
     hidePinMenu(0);
   });
-
-  let activePipWindow = null;
-
-  async function openAlwaysOnFrontPiP() {
-    if ("documentPictureInPicture" in window) {
-      try {
-        if (activePipWindow) {
-          activePipWindow.close();
-          activePipWindow = null;
-          return true;
-        }
-
-        const width = Math.max(540, popover.offsetWidth || 540);
-        const height = Math.max(640, popover.offsetHeight || 640);
-        const pipWin = await window.documentPictureInPicture.requestWindow({
-          width: width,
-          height: height
-        });
-        activePipWindow = pipWin;
-
-        const style = document.createElement("style");
-        style.textContent = `
-          * { box-sizing: border-box; margin: 0; padding: 0; }
-          html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: #0d0e12;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-          }
-          .quickpeek-popover {
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            max-width: 100% !important;
-            max-height: 100% !important;
-            border-radius: 0 !important;
-            border: none !important;
-            box-shadow: none !important;
-            display: flex !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-            pointer-events: auto !important;
-          }
-          .quickpeek-arrow { display: none !important; }
-        `;
-        pipWin.document.head.appendChild(style);
-
-        const link = document.createElement("link");
-        link.rel = "stylesheet";
-        link.href = chrome.runtime.getURL("styles.css");
-        pipWin.document.head.appendChild(link);
-
-        pipWin.document.body.appendChild(popover);
-        popover.classList.add("visible", "in-pip-window");
-        showStatusMessage("📺 Always on Front: Floating on top of all tabs & apps!");
-
-        pipWin.addEventListener("pagehide", () => {
-          popover.classList.remove("in-pip-window");
-          shadow.appendChild(popover);
-          activePipWindow = null;
-          if (isOpen) {
-            popover.classList.add("visible");
-          }
-        });
-        return true;
-      } catch (err) {
-        console.warn("PiP error:", err);
-      }
-    }
-    return false;
-  }
 
   if (pinTabOpt) {
     pinTabOpt.addEventListener("click", (e) => {
       e.stopPropagation();
-      setPinMode(pinMode === "tab" ? "none" : "tab");
+      setPinMode(isPinned ? "none" : "tab");
       hidePinMenu(0);
     });
   }
 
   if (pinChromeOpt) {
-    pinChromeOpt.addEventListener("click", async (e) => {
+    pinChromeOpt.addEventListener("click", (e) => {
       e.stopPropagation();
+      setPinMode(isPinned ? "none" : "tab");
       hidePinMenu(0);
-
-      // Launch Always on Front (PiP) keeping the exact same AirTab popover & all tabs intact
-      const ok = await openAlwaysOnFrontPiP();
-      if (!ok) {
-        // Fallback: Pin to Tab
-        setPinMode("tab");
-        showStatusMessage("📌 Pinned Always on Front on this page");
-      }
     });
   }
 
