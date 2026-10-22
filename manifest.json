@@ -54,7 +54,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["styles.css", "icons/*"],
+      "resources": ["styles.css", "icons/*", "window.html", "window.js"],
       "matches": ["<all_urls>"]
     }
   ],
